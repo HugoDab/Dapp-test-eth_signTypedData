@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {ethers} from 'ethers'
-import {Checkbox, Input, Radio} from 'antd';
+import {Radio} from 'antd';
 import './WalletCard.css'
 
 const WalletCardEthers = () => {
@@ -10,6 +10,7 @@ const WalletCardEthers = () => {
     const [userBalance, setUserBalance] = useState(null);
     const [connButtonText, setConnButtonText] = useState('Connect Wallet');
     const [provider, setProvider] = useState(null);
+    const [chainId, setChainId] = useState(null);
 
     const [errorMessageSign, setErrorMessageSign] = useState(null);
     const [messageDisplay, setMessageDisplay] = useState(null);
@@ -22,9 +23,17 @@ const WalletCardEthers = () => {
         } else {
             try {
                 const msgParams = JSON.parse(window.document.getElementById("msgParamsText").value)
+                let method;
+                let params;
+                if (version === "V1") {
+                    method = 'eth_signTypedData'
+                    params = [msgParams, defaultAccount]
+                } else {
+                    method = 'eth_signTypedData_' + version.toLowerCase()
+                    params = [defaultAccount, JSON.stringify(msgParams)]
+                }
                 const sign = await window.ethereum.request({
-                    method: 'eth_signTypedData',
-                    params: [msgParams, defaultAccount],
+                    method: method, params: params,
                 });
                 setMessageDisplay(`Successful: ${sign}`);
             } catch (err) {
@@ -33,8 +42,6 @@ const WalletCardEthers = () => {
             }
         }
     }
-
-
 
 
     const connectWalletHandler = () => {
@@ -52,6 +59,14 @@ const WalletCardEthers = () => {
                     setErrorMessage(error.message);
                 });
 
+            window.ethereum.request({
+                method: 'eth_chainId',
+            }).then(result => {
+                setChainId(result)
+            }).catch(error => {
+                setErrorMessage(error.message);
+            });
+
         } else if (!window.ethereum) {
             console.log('Need to install MetaMask');
             setErrorMessage('Please install MetaMask browser extension to interact');
@@ -67,10 +82,9 @@ const WalletCardEthers = () => {
                 })
         }
 
-    }, [defaultAccount]);
+    }, [provider, defaultAccount]);
 
-    return (
-        <div>
+    return (<div>
             <div className='walletCard'>
                 <h4> Making Connection to MetaMask using ethers.js </h4>
                 <button onClick={connectWalletHandler}>{connButtonText}</button>
@@ -84,21 +98,13 @@ const WalletCardEthers = () => {
             </div>
             <div className='walletCard'>
                 <h4> Sending eth_signTypedData{version} to MetaMask</h4>
+                <div>The chainId is: {chainId}</div>
                 <div className="msgParams">
                     <Radio.Group onChange={(e) => setVersion(e.target.value)} defaultValue={version}>
                         <Radio.Button value="V1">V1</Radio.Button>
                         <Radio.Button value="V3">V3</Radio.Button>
                         <Radio.Button value="V4">V4</Radio.Button>
                     </Radio.Group>
-                </div>
-                <div>
-                    <Checkbox>Domain</Checkbox>
-                    <div>
-                        <Input addonBefore="chainId:" defaultValue="1" />
-                        <Input addonBefore="name:" defaultValue="Ether Mail" />
-                        <Input addonBefore="verifyingContract:" defaultValue="0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC" />
-                        <Input addonBefore="version:" defaultValue="1" />
-                    </div>
                 </div>
                 <div style={{padding: "10px"}}>
                     <textarea id="msgParamsText" cols="40" rows="5"></textarea>
@@ -109,8 +115,7 @@ const WalletCardEthers = () => {
                 </div>
                 {errorMessageSign}
             </div>
-        </div>
-    );
+        </div>);
 }
 
 export default WalletCardEthers;
