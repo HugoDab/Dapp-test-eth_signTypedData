@@ -1,0 +1,12 @@
+.walletCard {
+	margin: 13rem;
+	border: 10px solid red;
+	border-radius: 5px;
+	background-color: #FFEF;
+	font-size: calc(8px + 2vmin);
+	color: blue;
+	font-family: "Times New Roman", Times, serif;
+	
+}
+
+body {background-color: lemonchiffon;}
