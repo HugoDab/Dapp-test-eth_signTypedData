@@ -9,4 +9,11 @@
 	
 }
 
+.spaces {
+	text-align: left;
+	justify-content: left;
+	margin-left: 5em;
+	margin-bottom: 1em;
+}
+
 body {background-color: lemonchiffon;}
